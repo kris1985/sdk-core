@@ -26,6 +26,7 @@ import okio.Okio;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
+import sun.security.rsa.RSASignature;
 
 import javax.net.ssl.*;
 import java.io.File;
@@ -51,6 +52,7 @@ import java.util.regex.Pattern;
 
 public class ApiClient {
 
+    public static final String HTTP_HEADER_CONTENT_MD5="Content-MD5";
     private String basePath = "https://petstore.swagger.io/v2";
     private boolean debugging = false;
     private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
@@ -85,7 +87,7 @@ public class ApiClient {
         json = new JSON();
 
         // Set default User-Agent.
-        setUserAgent("Swagger-Codegen/1.0.0/java");
+        setUserAgent("sdk-client");
 
         // Setup authentications (key: authentication name, value: authentication).
         authentications = new HashMap<String, Authentication>();
@@ -983,12 +985,25 @@ public class ApiClient {
      */
     public Request buildRequest(String path, String method, List<Pair> queryParams, List<Pair> collectionQueryParams, Object body, Map<String, String> headerParams, Map<String, Object> formParams, String[] authNames, ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         updateParamsForAuth(authNames, queryParams, headerParams);
-
         final String url = buildUrl(path, queryParams, collectionQueryParams);
         final Request.Builder reqBuilder = new Request.Builder().url(url);
-        processHeaderParams(headerParams, reqBuilder);
         headerParams.put("X-Ca-Key",this.getAppKey()); //appKey
-        headerParams.put("X-Ca-Signature","");//todo 构造签名值
+        String bodyJson = JSON.createGson().toString();
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HTTP_HEADER_CONTENT_MD5, Sign.base64AndMD5(bodyJson.getBytes()));
+        Map<String, String> querys = null;
+        if(queryParams!=null && queryParams.size()>0){
+            querys = new HashMap<>();
+            for(Pair pair:queryParams){
+                querys.put(pair.getName(),pair.getValue());
+            }
+        }
+        String sign = SignUtil.sign(this.getAppSecret(), method, path, headers,
+                querys, null, null);
+        //构造签名值
+        headerParams.put("X-Ca-Signature",sign);
+        processHeaderParams(headerParams, reqBuilder);
+
         String contentType = (String) headerParams.get("Content-Type");
         // ensuring a default content type
         if (contentType == null) {
