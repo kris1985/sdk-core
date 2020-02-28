@@ -66,4 +66,17 @@
         <scope>test</scope>
     </dependency>
 </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>depick</id>
+            <name>User Project Release</name>
+            <url>http://nexus.deepexi.top/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>depick</id>
+            <name>User Project SNAPSHOTS</name>
+            <url>http://nexus.deepexi.top/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

@@ -856,11 +856,11 @@ public class ApiClient {
      *   when returnType is null.
      * @throws ApiException If fail to execute the call
      */
-    public <T> ApiResponse<T> execute(Call call, Type returnType) throws ApiException {
+    public <T> T execute(Call call, Type returnType) throws ApiException {
         try {
             Response response = call.execute();
             T data = handleResponse(response, returnType);
-            return new ApiResponse<T>(response.code(), response.headers().toMultimap(), data);
+            return data;
         } catch (IOException e) {
             throw new ApiException(e);
         }
@@ -988,9 +988,11 @@ public class ApiClient {
         final String url = buildUrl(path, queryParams, collectionQueryParams);
         final Request.Builder reqBuilder = new Request.Builder().url(url);
         headerParams.put("X-Ca-Key",this.getAppKey()); //appKey
-        String bodyJson = JSON.createGson().toString();
         Map<String, String> headers = new HashMap<>();
-        headers.put(HTTP_HEADER_CONTENT_MD5, Sign.base64AndMD5(bodyJson.getBytes()));
+        if(body!=null){
+            String bodyJson = this.json.serialize(body);
+            headers.put(HTTP_HEADER_CONTENT_MD5, Sign.base64AndMD5(bodyJson.getBytes()));
+        }
         Map<String, String> querys = null;
         if(queryParams!=null && queryParams.size()>0){
             querys = new HashMap<>();

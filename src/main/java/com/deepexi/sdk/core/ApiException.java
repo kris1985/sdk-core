@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-02-21T03:42:34.779+08:00")
-public class ApiException extends Exception {
+public class ApiException extends RuntimeException {
     private int code = 0;
     private Map<String, List<String>> responseHeaders = null;
     private String responseBody = null;

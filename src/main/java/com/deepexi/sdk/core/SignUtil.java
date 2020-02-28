@@ -114,20 +114,8 @@ public class SignUtil {
 
         sb.append(method.toUpperCase()).append(LF);
         if (null != headers) {
-            if (null != headers.get(HTTP_HEADER_ACCEPT)) {
-                sb.append(headers.get(HTTP_HEADER_ACCEPT));
-            }
-            sb.append(LF);
             if (null != headers.get(HTTP_HEADER_CONTENT_MD5)) {
                 sb.append(headers.get(HTTP_HEADER_CONTENT_MD5));
-            }
-            sb.append(LF);
-            if (null != headers.get(HTTP_HEADER_CONTENT_TYPE)) {
-                sb.append(headers.get(HTTP_HEADER_CONTENT_TYPE));
-            }
-            sb.append(LF);
-            if (null != headers.get(HTTP_HEADER_DATE)) {
-                sb.append(headers.get(HTTP_HEADER_DATE));
             }
         }
         sb.append(LF);
