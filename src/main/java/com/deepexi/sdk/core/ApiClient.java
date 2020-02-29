@@ -919,7 +919,7 @@ public class ApiClient {
      * @return Type
      */
     public <T> T handleResponse(Response response, Type returnType) throws ApiException {
-        if (response.isSuccessful()) {
+       /* if (response.isSuccessful()) {
             if (returnType == null || response.code() == 204) {
                 // returning null if the returnType is not defined,
                 // or the status code is 204 (No Content)
@@ -944,7 +944,8 @@ public class ApiClient {
                 }
             }
             throw new ApiException(response.message(), response.code(), response.headers().toMultimap(), respBody);
-        }
+        }*/
+       return this.deserialize(response, returnType);
     }
 
     /**

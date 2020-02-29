@@ -10,10 +10,7 @@ import sun.misc.BASE64Encoder;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 
 /**
@@ -239,5 +236,14 @@ public class SignUtil {
         }
 
         return false;
+    }
+
+    public static void main(String[] args) {
+        Map header = new HashMap();
+        String body ="{\"appId\":1,\"tenantId\":\"1\"}";
+        String md5 = Sign.base64AndMD5(body.getBytes());
+        header.put(HTTP_HEADER_CONTENT_MD5, md5);
+        String str = SignUtil.sign("c9da8be2296d520c893a59bebacccbd3401d0d23","POST","/sdk/domain/rpc/identityConfig/findPage",header,null,null,null);
+        System.out.println(str);
     }
 }
