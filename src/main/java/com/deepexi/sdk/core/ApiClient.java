@@ -85,7 +85,6 @@ public class ApiClient {
         verifyingSsl = true;
 
         json = new JSON();
-
         // Set default User-Agent.
         setUserAgent("sdk-client");
 
@@ -95,6 +94,13 @@ public class ApiClient {
         authentications.put("petstore_auth", new OAuth());
         // Prevent the authentications from being modified.
         authentications = Collections.unmodifiableMap(authentications);
+    }
+
+    public ApiClient(String basePath,String appKey,String appSecret){
+        ApiClient apiClient = new ApiClient();
+        apiClient.setBasePath(basePath);
+        apiClient.setAppKey(appKey);
+        apiClient.setAppSecret(appSecret);
     }
 
     /**
@@ -1240,4 +1246,6 @@ public class ApiClient {
             throw new AssertionError(e);
         }
     }
+
+
 }
