@@ -19,6 +19,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.gsonfire.GsonFireBuilder;
 import okio.ByteString;
+import org.apache.commons.lang3.time.DateUtils;
+import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
@@ -34,6 +36,9 @@ import java.util.Date;
 import java.util.Map;
 
 public class JSON {
+
+
+
     private Gson gson;
     private boolean isLenientOnJson = false;
     private DateTypeAdapter dateTypeAdapter = new DateTypeAdapter();
@@ -46,6 +51,8 @@ public class JSON {
         GsonFireBuilder fireBuilder = new GsonFireBuilder()
         ;
         GsonBuilder builder = fireBuilder.createGsonBuilder();
+       // builder.serializeNulls();
+        //builder.setDateFormat("yyyy-MM-dd HH:mm:ss");
         return builder;
     }
 
@@ -68,15 +75,31 @@ public class JSON {
     public JSON() {
         gson = createGson()
            // .registerTypeAdapter(Date.class, dateTypeAdapter)
-        .registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+       /* .registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
             public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                return new Date(json.getAsJsonPrimitive().getAsLong());
+                if(StringUtil.isBlank(json.getAsString())){
+                    return null;
+                }
+                if(json.getAsJsonPrimitive().isNumber()){
+                    return new Date(json.getAsJsonPrimitive().getAsLong());
+                }else {
+                    try {
+                        return   DateUtils.parseDate(json.getAsJsonPrimitive().getAsString(),
+                                DATE_FORMAT,RFC822_DATE_FORMAT,DATE_FORMAT1,ALTERNATIVE_ISO8601_DATE_FORMAT
+                                ,ISO8601_DATE_FORMAT,DATE_FORMAT2);
+                    } catch (ParseException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
             }
-        })
+        })*/
+
+            .registerTypeAdapter(java.util.Date.class, new MyDateTypeAdapter())
             .registerTypeAdapter(java.sql.Date.class, sqlDateTypeAdapter)
             .registerTypeAdapter(OffsetDateTime.class, offsetDateTimeTypeAdapter)
             .registerTypeAdapter(LocalDate.class, localDateTypeAdapter)
             .registerTypeAdapter(byte[].class, byteArrayAdapter)
+
             .create();
     }
 
@@ -112,6 +135,9 @@ public class JSON {
      * @return String representation of the JSON
      */
     public String serialize(Object obj) {
+        if(obj==null){
+            return "{}";
+        }
         return gson.toJson(obj);
     }
 
@@ -388,4 +414,33 @@ public class JSON {
         sqlDateTypeAdapter.setFormat(dateFormat);
         return this;
     }
+
+    /*public static void main(String[] args) throws JsonProcessingException {
+        User user = new User();
+        user.setId(1);
+        user.setUsername("tewt");
+        user.setAddress("ererer");
+        user.setDate(new Date());
+
+        String str = "{\"id\":123,\"username\":\"tewt\",\"address\":\"ererer\",\"date\":1583482451971}";
+        String t = "{\"id\":123,\"username\":\"tewt\",\"address\":\"ererer\",\"date\":Mar 9, 2020 1:39:35 PM}";
+        String tt = "{\"id\":123,\"username\":\"tewt\",\"address\":\"ererer\",\"date\":'2010-03-10 1:39:35'}";
+       JSON json = new JSON();
+        *//* json.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));*//*
+        *//*Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                .create();*//*
+        String j = com.alibaba.fastjson.JSON.toJSONString(user);
+        ObjectMapper mapper=new ObjectMapper();
+        //3.调用mapper的writeValueAsString()方法把一个对象或集合转为json字符串
+        String jsonStr=mapper.writeValueAsString(user);
+        //String k = json.toJson(user);
+        //User payloadUser = com.alibaba.fastjson.JSON.parseObject(tt,User.class);
+        User payloadUser = json.deserialize(jsonStr,User.class);
+        System.out.println(user);
+        //System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(user.getDate()));
+    }*/
+
+
+
 }

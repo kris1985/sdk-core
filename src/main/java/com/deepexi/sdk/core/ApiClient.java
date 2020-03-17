@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -865,6 +866,9 @@ public class ApiClient {
     public <T> T execute(Call call, Type returnType) throws ApiException {
         try {
             Response response = call.execute();
+            if(!response.isSuccessful()){
+                throw new ApiException(response.code(),response.message());
+            }
             T data = handleResponse(response, returnType);
             return data;
         } catch (IOException e) {
@@ -925,33 +929,7 @@ public class ApiClient {
      * @return Type
      */
     public <T> T handleResponse(Response response, Type returnType) throws ApiException {
-       /* if (response.isSuccessful()) {
-            if (returnType == null || response.code() == 204) {
-                // returning null if the returnType is not defined,
-                // or the status code is 204 (No Content)
-                if (response.body() != null) {
-                    try {
-                        response.body().close();
-                    } catch (IOException e) {
-                        throw new ApiException(response.message(), e, response.code(), response.headers().toMultimap());
-                    }
-                }
-                return null;
-            } else {
-                return deserialize(response, returnType);
-            }
-        } else {
-            String respBody = null;
-            if (response.body() != null) {
-                try {
-                    respBody = response.body().string();
-                } catch (IOException e) {
-                    throw new ApiException(response.message(), e, response.code(), response.headers().toMultimap());
-                }
-            }
-            throw new ApiException(response.message(), response.code(), response.headers().toMultimap(), respBody);
-        }*/
-       return this.deserialize(response, returnType);
+        return this.deserialize(response, returnType);
     }
 
     /**
@@ -992,14 +970,34 @@ public class ApiClient {
      */
     public Request buildRequest(String path, String method, List<Pair> queryParams, List<Pair> collectionQueryParams, Object body, Map<String, String> headerParams, Map<String, Object> formParams, String[] authNames, ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         updateParamsForAuth(authNames, queryParams, headerParams);
-        final String url = buildUrl(path, queryParams, collectionQueryParams);
-        final Request.Builder reqBuilder = new Request.Builder().url(url);
         headerParams.put("X-Ca-Key",this.getAppKey()); //appKey
         Map<String, String> headers = new HashMap<>();
         if(body!=null){
-            String bodyJson = this.json.serialize(body);
-            headers.put(HTTP_HEADER_CONTENT_MD5, Sign.base64AndMD5(bodyJson.getBytes()));
+            if(method.equalsIgnoreCase("get")){
+                Class cls = body.getClass();
+                //得到所有属性
+                Field[] fields = cls.getDeclaredFields();
+                for (int i=0;i<fields.length;i++){
+                    Field field = fields[i];
+                    field.setAccessible(true);
+                    String name = field.getName();
+                    Object value = null;
+                    try {
+                        value = field.get(body);
+                    } catch (IllegalAccessException e) {
+                       throw new RuntimeException(e);
+                    }
+                    if(value!=null){
+                        queryParams.add(new Pair(name,String.valueOf(value)));
+                    }
+                }
+            }else{
+                String bodyJson = this.json.serialize(body);
+                headers.put(HTTP_HEADER_CONTENT_MD5, Sign.base64AndMD5(bodyJson.getBytes()));
+            }
         }
+        final String url = buildUrl(path, queryParams, collectionQueryParams);
+        final Request.Builder reqBuilder = new Request.Builder().url(url);
         Map<String, String> querys = null;
         if(queryParams!=null && queryParams.size()>0){
             querys = new HashMap<>();

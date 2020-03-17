@@ -52,7 +52,7 @@ public class ApiException extends RuntimeException {
     }
 
     public ApiException(int code, String message) {
-        super(message);
+        super("["+code+"]:"+message);
         this.code = code;
     }
 
