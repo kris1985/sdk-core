@@ -866,9 +866,9 @@ public class ApiClient {
     public <T> T execute(Call call, Type returnType) throws ApiException {
         try {
             Response response = call.execute();
-            if(!response.isSuccessful()){
+           /* if(!response.isSuccessful()){
                 throw new ApiException(response.code(),response.message());
-            }
+            }*/
             T data = handleResponse(response, returnType);
             return data;
         } catch (IOException e) {
@@ -929,7 +929,11 @@ public class ApiClient {
      * @return Type
      */
     public <T> T handleResponse(Response response, Type returnType) throws ApiException {
-        return this.deserialize(response, returnType);
+        T t = this.deserialize(response, returnType);
+        if(t==null){
+          throw new ApiException(response.code(),response.message());
+        }
+        return t;
     }
 
     /**
